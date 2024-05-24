@@ -20,7 +20,7 @@ Array
 
 ### Types of Linked List
 
-1. Singly Linked List
+1. [Singly Linked List](https://github.com/zavvdev/data-structures/tree/main/LinkedList/SinglyLinkedList)
 
 2. Doubly Linked List
 

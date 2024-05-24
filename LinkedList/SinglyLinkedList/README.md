@@ -13,11 +13,17 @@ In a singly linked list, each node consists of two parts: data and a pointer to 
 3. Length
 
 4. Insertion:
-    4.1 Insert at the beginning
-    4.2 Insert at the end
-    4.3 Insert at a specific position
+    
+    - Insert at the beginning
+    
+    - Insert at the end
+    
+    - Insert at a specific position
 
 5. Deletion:
-    5.1 Delete from the beginning
-    5.2 Delete from the end
-    5.3 Delete a specific node
+    
+    - Delete from the beginning
+    
+    - Delete from the end
+    
+    - Delete a specific node
