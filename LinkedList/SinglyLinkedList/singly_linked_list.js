@@ -68,6 +68,7 @@ SinglyLinkedList.prototype.insert_at = function (value, index) {
   var node = new Node(value, null);
 
   if (index === 0 || this.head === null) {
+    node.next = this.head;
     this.head = node;
     return;
   }
@@ -160,6 +161,7 @@ it("should insert at back", () => {
   sll.insert_front(2);
   sll.insert_back(3);
 
+  assert(sll.head.value === 2);
   assert(sll.head.next.value === 1);
   assert(sll.head.next.next.value === 3);
 });
@@ -172,7 +174,26 @@ it("should insert at custom position", () => {
   sll.insert_back(3);
   sll.insert_at(4, 1);
 
+  assert(sll.head.value === 2);
   assert(sll.head.next.value === 4);
+  assert(sll.head.next.next.value === 1);
+  assert(sll.head.next.next.next.value === 3);
+});
+
+it("should insert at 0 position if empty", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_at(1, 0);
+
+  assert(sll.head.value === 1);
+});
+
+it("should insert at 0 position", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  sll.insert_at(2, 0);
+
+  assert(sll.head.value === 2);
+  assert(sll.head.next.value === 1);
 });
 
 it("should delete from front", () => {
@@ -185,6 +206,15 @@ it("should delete from front", () => {
   assert(sll.head.value === 1);
 });
 
+it("should delete from front the last element", () => {
+  var sll = new SinglyLinkedList();
+
+  sll.insert_front(1);
+  sll.delete_front();
+
+  assert(sll.head === null);
+});
+
 it("should delete from back", () => {
   var sll = new SinglyLinkedList();
 
@@ -193,6 +223,15 @@ it("should delete from back", () => {
   sll.delete_back();
 
   assert(sll.head.value === 2);
+});
+
+it("should delete from back the last element", () => {
+  var sll = new SinglyLinkedList();
+
+  sll.insert_front(1);
+  sll.delete_back();
+
+  assert(sll.head === null);
 });
 
 it("should delete at custom position", () => {
@@ -204,6 +243,15 @@ it("should delete at custom position", () => {
   sll.delete_at(1);
 
   assert(sll.head.next.value === 3);
+});
+
+it("should not delete if out of bounds", () => {
+  var sll = new SinglyLinkedList();
+
+  sll.insert_front(1);
+  sll.delete_at(10);
+
+  assert(sll.head.value === 1);
 });
 
 it("should have length 0", () => {
