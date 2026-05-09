@@ -1,9 +1,9 @@
 function it(message, fn) {
   try {
     fn();
-    console.log(message, "- PASSED");
+    console.log(message, "- \x1b[32mPASSED\x1b[0m");
   } catch (e) {
-    console.error(message, "- FAILED");
+    console.error(message, "- \x1b[31mFAILED\x1b[0m");
     console.error(e);
     throw e;
   }
@@ -11,7 +11,7 @@ function it(message, fn) {
 
 function assert(condition) {
   if (!condition) {
-    throw "Assertion failed";
+    throw "\x1b[31mAssertion failed\x1b[0m";
   }
 }
 

@@ -1,15 +1,16 @@
 var { it, assert } = require("../../test_utils");
 
-var Node = function (value, next) {
+var Node = function(value, next) {
   this.value = value;
   this.next = next;
 };
 
-var SinglyLinkedList = function () {
+var SinglyLinkedList = function() {
   this.head = null;
+  this.length = 0;
 };
 
-SinglyLinkedList.prototype.traverse = function (fn) {
+SinglyLinkedList.prototype.traverse = function(fn) {
   if (this.head === null) {
     return;
   }
@@ -22,7 +23,7 @@ SinglyLinkedList.prototype.traverse = function (fn) {
   }
 };
 
-SinglyLinkedList.prototype.is_present = function (value) {
+SinglyLinkedList.prototype.is_present = function(value) {
   var current = this.head;
 
   while (current !== null) {
@@ -35,23 +36,37 @@ SinglyLinkedList.prototype.is_present = function (value) {
   return false;
 };
 
-SinglyLinkedList.prototype.length = function () {
-  var count = 0;
-  this.traverse(() => count++);
+SinglyLinkedList.prototype.find = function(value) {
+  if (this.head === null) {
+    return -1;
+  }
 
-  return count;
+  var index = 0;
+  var current = this.head;
+
+  while (current !== null) {
+    if (current.value === value) {
+      return index;
+    }
+    index++;
+    current = current.next;
+  }
+
+  return -1;
 };
 
-SinglyLinkedList.prototype.insert_front = function (value) {
+SinglyLinkedList.prototype.insert_front = function(value) {
   var node = new Node(value, this.head);
   this.head = node;
+  this.length++;
 };
 
-SinglyLinkedList.prototype.insert_back = function (value) {
+SinglyLinkedList.prototype.insert_back = function(value) {
   var node = new Node(value, null);
 
   if (this.head === null) {
     this.head = node;
+    this.length++;
     return;
   }
 
@@ -62,15 +77,25 @@ SinglyLinkedList.prototype.insert_back = function (value) {
   }
 
   last_node.next = node;
+  this.length++;
 };
 
-SinglyLinkedList.prototype.insert_at = function (value, index) {
+SinglyLinkedList.prototype.insert_at = function(value, index) {
   var node = new Node(value, null);
 
-  if (index === 0 || this.head === null) {
+  if (index === 0) {
     node.next = this.head;
     this.head = node;
+    this.length++;
     return;
+  }
+
+  if (index < 0) {
+    index = this.length + index + 1;
+  }
+
+  if (index > this.length) {
+    index = this.length;
   }
 
   var current = this.head;
@@ -83,28 +108,29 @@ SinglyLinkedList.prototype.insert_at = function (value, index) {
   current.next = node;
 };
 
-SinglyLinkedList.prototype.delete_front = function () {
+SinglyLinkedList.prototype.delete_front = function() {
   if (this.head === null) {
-    console.log("List is empty");
     return;
   }
 
   if (this.head.next === null) {
     this.head = null;
+    this.length = 0;
     return;
   }
 
   this.head = this.head.next;
+  this.length--;
 };
 
-SinglyLinkedList.prototype.delete_back = function () {
+SinglyLinkedList.prototype.delete_back = function() {
   if (this.head === null) {
-    console.log("List is empty");
     return;
   }
 
   if (this.head.next === null) {
     this.head = null;
+    this.length = 0;
     return;
   }
 
@@ -115,17 +141,22 @@ SinglyLinkedList.prototype.delete_back = function () {
   }
 
   current.next = null;
+  this.length--;
 };
 
-SinglyLinkedList.prototype.delete_at = function (index) {
+SinglyLinkedList.prototype.delete_at = function(index) {
   if (this.head === null) {
-    console.log("List is empty");
     return;
   }
 
   if (index === 0) {
     this.head = this.head.next;
+    this.length--;
     return;
+  }
+
+  if (index < 0) {
+    index = this.length + index;
   }
 
   var current = this.head;
@@ -135,16 +166,89 @@ SinglyLinkedList.prototype.delete_at = function (index) {
   }
 
   if (current.next === null) {
-    console.log("Index out of bounds");
     return;
   }
 
   current.next = current.next.next;
+  this.length--;
 };
 
+// ========================
+//
 // Tests
+//
+// ========================
 
-it("should insert at front", () => {
+it("should have length", () => {
+  var sll = new SinglyLinkedList();
+  assert(sll.length === 0);
+
+  sll.insert_front(1);
+  sll.insert_front(2);
+  sll.insert_front(3);
+  assert(sll.length === 3);
+
+  sll.insert_front(4);
+  assert(sll.length === 4);
+
+  sll.delete_front();
+  assert(sll.length === 3);
+
+  sll.delete_front();
+  sll.delete_front();
+  sll.delete_front();
+  sll.delete_front();
+  sll.delete_front();
+  assert(sll.length === 0);
+});
+
+it("should traverse", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  sll.insert_front(2);
+  sll.insert_front(3);
+
+  var values = [];
+  sll.traverse((node) => values.push(node.value));
+
+  assert(values[0] === 3);
+  assert(values[1] === 2);
+  assert(values[2] === 1);
+});
+
+it("should return true if present", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  assert(sll.is_present(1) === true);
+});
+
+it("should return false if not present", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(2);
+  assert(sll.is_present(1) === false);
+});
+
+it("should return an index if found", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_back(2);
+  sll.insert_back(3);
+  sll.insert_back(4);
+  sll.insert_back(5);
+  assert(sll.find(4) === 2);
+});
+
+it("should return -1 if empty", () => {
+  var sll = new SinglyLinkedList();
+  assert(sll.find(4) === -1);
+});
+
+it("should return -1 if not found", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_back(3);
+  assert(sll.find(4) === -1);
+});
+
+it("should insert at the beginning", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -152,9 +256,10 @@ it("should insert at front", () => {
 
   assert(sll.head.value === 2);
   assert(sll.head.next.value === 1);
+  assert(sll.length === 2);
 });
 
-it("should insert at back", () => {
+it("should insert at the end", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -196,7 +301,41 @@ it("should insert at 0 position", () => {
   assert(sll.head.next.value === 1);
 });
 
-it("should delete from front", () => {
+it("should insert at the end if index is greater that length", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  sll.insert_at(2, 10);
+
+  assert(sll.head.value === 1);
+  assert(sll.head.next.value === 2);
+});
+
+
+it("should custom insert at the end", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  sll.insert_at(2, 1);
+
+  assert(sll.head.value === 1);
+  assert(sll.head.next.value === 2);
+});
+
+it("should insert with negative index", () => {
+  var sll = new SinglyLinkedList();
+  sll.insert_front(1);
+  sll.insert_front(2);
+  sll.insert_front(3);
+  sll.insert_front(4);
+  sll.insert_at(0, -2);
+
+  assert(sll.head.value === 4);
+  assert(sll.head.next.value === 3);
+  assert(sll.head.next.next.value === 2);
+  assert(sll.head.next.next.next.value === 0);
+  assert(sll.head.next.next.next.next.value === 1);
+});
+
+it("should delete from beginning", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -206,7 +345,7 @@ it("should delete from front", () => {
   assert(sll.head.value === 1);
 });
 
-it("should delete from front the last element", () => {
+it("should delete from the beggining if length = 1", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -215,7 +354,7 @@ it("should delete from front the last element", () => {
   assert(sll.head === null);
 });
 
-it("should delete from back", () => {
+it("should delete from the end", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -225,7 +364,7 @@ it("should delete from back", () => {
   assert(sll.head.value === 2);
 });
 
-it("should delete from back the last element", () => {
+it("should delete from the end if length = 1", () => {
   var sll = new SinglyLinkedList();
 
   sll.insert_front(1);
@@ -239,10 +378,11 @@ it("should delete at custom position", () => {
 
   sll.insert_front(1);
   sll.insert_front(2);
-  sll.insert_back(3);
+  sll.insert_front(3);
   sll.delete_at(1);
 
-  assert(sll.head.next.value === 3);
+  assert(sll.head.value === 3);
+  assert(sll.head.next.value === 1);
 });
 
 it("should not delete if out of bounds", () => {
@@ -254,36 +394,16 @@ it("should not delete if out of bounds", () => {
   assert(sll.head.value === 1);
 });
 
-it("should have length 0", () => {
+it("should delete with negative index", () => {
   var sll = new SinglyLinkedList();
-  assert(sll.length() === 0);
-});
 
-it("should have length 1", () => {
-  var sll = new SinglyLinkedList();
-  sll.insert_front(1);
-  assert(sll.length() === 1);
-});
-
-it("should return true if present", () => {
-  var sll = new SinglyLinkedList();
-  sll.insert_front(1);
-  assert(sll.is_present(1) === true);
-});
-
-it("should return false if not present", () => {
-  var sll = new SinglyLinkedList();
-  assert(sll.is_present(1) === false);
-});
-
-it("should traverse", () => {
-  var sll = new SinglyLinkedList();
   sll.insert_front(1);
   sll.insert_front(2);
+  sll.insert_front(3);
+  sll.insert_front(4);
+  sll.delete_at(-2);
 
-  var values = [];
-  sll.traverse((node) => values.push(node.value));
-
-  assert(values[0] === 2);
-  assert(values[1] === 1);
+  assert(sll.head.value === 4);
+  assert(sll.head.next.value === 3);
+  assert(sll.head.next.next.value === 1);
 });
