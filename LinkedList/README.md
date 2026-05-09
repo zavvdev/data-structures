@@ -4,7 +4,7 @@ A linked list is a linear data structure where elements, called nodes, are store
 
 1. [Singly Linked List](./singly_linked_list.js)
 
-2. Doubly Linked List
+2. [Doubly Linked List](./doubly_linked_list.js)
 
 3. Circular Linked List
 

@@ -1,37 +1,41 @@
 var { it, assert } = require("../test_utils");
 
 /**
-* Singly Linked List
-* 
-* It is a collection of nodes where each node contains a data field
-* and a reference (link) to the next node in the sequence.
-* The last node in the list points to null, indicating the end of the list.
-*
-* Operations:
-*   1. Traversal (visiting each node in the linked list and performing some operation on the data)
-*   2. Searching
-*   3. Length
-*   4. Insertion:
-*     - Insert at the beginning
-*     - Insert at the end
-*     - Insert at a specific position
-*   5. Deletion:
-*     - Delete from the beginning
-*     - Delete from the end
-*     - Delete a specific node
-*/
+ * Singly Linked List
+ *
+ * It is a collection of nodes where each node contains a data field
+ * and a reference (link) to the next node in the sequence.
+ * The last node in the list points to null, indicating the end of the list.
+ *
+ * Operations:
+ *   1. Traversal (visiting each node in the linked list and performing some operation on the data)
+ *   2. Searching
+ *   3. Length
+ *   4. Insertion:
+ *     - Insert at the beginning
+ *     - Insert at the end
+ *     - Insert at a specific position
+ *   5. Deletion:
+ *     - Delete from the beginning
+ *     - Delete from the end
+ *     - Delete at a specific position
+ */
 
-var Node = function(value, next) {
+var Node = function (value, next) {
   this.value = value;
   this.next = next;
 };
 
-var SinglyLinkedList = function() {
+var SinglyLinkedList = function () {
   this.head = null;
   this.length = 0;
 };
 
-SinglyLinkedList.prototype.traverse = function(fn) {
+SinglyLinkedList.prototype.traverse = function (fn) {
+  if (typeof fn !== "function") {
+    throw new Error(`Expected 'fn' to be a function, got ${typeof fn}`);
+  }
+
   if (this.head === null) {
     return;
   }
@@ -44,7 +48,7 @@ SinglyLinkedList.prototype.traverse = function(fn) {
   }
 };
 
-SinglyLinkedList.prototype.is_present = function(value) {
+SinglyLinkedList.prototype.is_present = function (value) {
   var current = this.head;
 
   while (current !== null) {
@@ -57,7 +61,7 @@ SinglyLinkedList.prototype.is_present = function(value) {
   return false;
 };
 
-SinglyLinkedList.prototype.find = function(value) {
+SinglyLinkedList.prototype.find = function (value) {
   if (this.head === null) {
     return -1;
   }
@@ -76,13 +80,13 @@ SinglyLinkedList.prototype.find = function(value) {
   return -1;
 };
 
-SinglyLinkedList.prototype.insert_front = function(value) {
+SinglyLinkedList.prototype.insert_front = function (value) {
   var node = new Node(value, this.head);
   this.head = node;
   this.length++;
 };
 
-SinglyLinkedList.prototype.insert_back = function(value) {
+SinglyLinkedList.prototype.insert_back = function (value) {
   var node = new Node(value, null);
 
   if (this.head === null) {
@@ -101,7 +105,11 @@ SinglyLinkedList.prototype.insert_back = function(value) {
   this.length++;
 };
 
-SinglyLinkedList.prototype.insert_at = function(value, index) {
+SinglyLinkedList.prototype.insert_at = function (value, index) {
+  if (typeof index !== "number") {
+    throw new Error(`Expected 'index' to be a number, got ${typeof index}`);
+  }
+
   var node = new Node(value, null);
 
   if (index === 0) {
@@ -129,7 +137,7 @@ SinglyLinkedList.prototype.insert_at = function(value, index) {
   current.next = node;
 };
 
-SinglyLinkedList.prototype.delete_front = function() {
+SinglyLinkedList.prototype.delete_front = function () {
   if (this.head === null) {
     return;
   }
@@ -144,7 +152,7 @@ SinglyLinkedList.prototype.delete_front = function() {
   this.length--;
 };
 
-SinglyLinkedList.prototype.delete_back = function() {
+SinglyLinkedList.prototype.delete_back = function () {
   if (this.head === null) {
     return;
   }
@@ -165,7 +173,11 @@ SinglyLinkedList.prototype.delete_back = function() {
   this.length--;
 };
 
-SinglyLinkedList.prototype.delete_at = function(index) {
+SinglyLinkedList.prototype.delete_at = function (index) {
+  if (typeof index !== "number") {
+    throw new Error(`Expected 'index' to be a number, got ${typeof index}`);
+  }
+
   if (this.head === null) {
     return;
   }
@@ -330,7 +342,6 @@ it("should insert at the end if index is greater that length", () => {
   assert(sll.head.value === 1);
   assert(sll.head.next.value === 2);
 });
-
 
 it("should custom insert at the end", () => {
   var sll = new SinglyLinkedList();
