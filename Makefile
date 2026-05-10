@@ -1,5 +1,5 @@
 format:
 	npx prettier . --write
 
-run:
+run-node:
 	node --trace-uncaught $(path)

@@ -37,6 +37,11 @@ function Node(value, prev, next) {
   this.next = next;
 }
 
+Node.clone = function (node) {
+  if (node === null) return null;
+  return new Node(node.value, node.prev, node.next);
+};
+
 function DoublyLinkedList() {
   this.head = null;
   this.tail = null;
@@ -61,7 +66,7 @@ DoublyLinkedList.prototype.get_at = function (index) {
 
   if (index <= mid) {
     current_node = this.head;
-    for (let i = 0; i <= mid && current_node.next !== null; i++) {
+    for (let i = 0; i <= mid; i++) {
       if (index === i) {
         return current_node;
       }
@@ -69,7 +74,7 @@ DoublyLinkedList.prototype.get_at = function (index) {
     }
   } else {
     current_node = this.tail;
-    for (let i = this.length - 1; i >= mid && current_node.prev !== null; i--) {
+    for (let i = this.length - 1; i >= mid; i--) {
       if (index === i) {
         return current_node;
       }
@@ -202,6 +207,108 @@ DoublyLinkedList.prototype.insert_at = function (value, index) {
   }
 
   throw new Error("Not found");
+};
+
+DoublyLinkedList.prototype.delete_start = function () {
+  if (this.head !== null) {
+    if (this.length === 1) {
+      this.head = null;
+      this.tail = null;
+    } else {
+      this.head = ((this.head.next.prev = null), this.head.next);
+    }
+    this.length--;
+  }
+};
+
+DoublyLinkedList.prototype.delete_end = function () {
+  if (this.tail !== null) {
+    if (this.length === 1) {
+      this.tail = null;
+      this.head = null;
+    } else {
+      this.tail = ((this.tail.prev.next = null), this.tail.prev);
+    }
+    this.length--;
+  }
+};
+
+DoublyLinkedList.prototype.delete_at = function (index) {
+  if (typeof index !== "number") {
+    throw new Error(`Expected 'index' to be a number, got ${typeof index}`);
+  }
+  if (index < 0) {
+    index = this.length + index;
+  }
+  if (this.length === 1 && index === 0) {
+    this.head = null;
+    this.tail = null;
+    this.length--;
+    return;
+  }
+  if (index >= this.length) {
+    throw new Error("Out of bounds");
+  }
+
+  var mid = (this.length / 2) | 0;
+  var current_node = null;
+
+  var del = (current_node) => {
+    if (current_node.prev === null) {
+      current_node.next.prev = null;
+      this.head = current_node.next;
+    } else {
+      current_node.prev.next = current_node.next;
+    }
+    if (current_node.next === null) {
+      current_node.prev.next = null;
+      this.tail = current_node.prev;
+    } else {
+      current_node.next.prev = current_node.prev;
+    }
+    this.length--;
+  };
+
+  if (index <= mid) {
+    current_node = this.head;
+    for (let i = 0; i <= this.length - 1 && current_node.next !== null; i++) {
+      if (i === index) {
+        del(current_node);
+        return;
+      }
+      current_node = current_node.next;
+    }
+  } else {
+    current_node = this.tail;
+    for (let i = this.length - 1; i >= mid && current_node.prev !== null; i--) {
+      if (i === index) {
+        del(current_node);
+        return;
+      }
+      current_node = current_node.prev;
+    }
+  }
+
+  throw new Error("Not found");
+};
+
+DoublyLinkedList.prototype.clear = function () {
+  this.head = null;
+  this.tail = null;
+  this.length = 0;
+};
+
+DoublyLinkedList.prototype.reverse = function () {
+  var current = this.head;
+  while (current !== null) {
+    var temp = current.prev;
+    current.prev = current.next;
+    current.next = temp;
+    current = current.prev;
+  }
+  var temp = this.head;
+  this.head = this.tail;
+  this.tail = temp;
 };
 
 // ========================
@@ -523,4 +630,239 @@ it("insert_at should support negative index insertion", () => {
   var list = [];
   dll.traverse((node) => list.push(node.value));
   assert(list.toString() === "1,0,2");
+});
+
+it("delete_start should clear the list if length=1", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.delete_start();
+  assert(dll.length === 0);
+  assert(dll.head === null);
+  assert(dll.tail === null);
+});
+
+it("delete_start should delete item from the start", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  assert(dll.length === 3);
+  dll.delete_start();
+  assert(dll.length === 2);
+  assert(dll.head.value === 2);
+  assert(dll.head.next.value === 3);
+  assert(dll.head.prev === null);
+  assert(dll.tail.value === 3);
+});
+
+it("delete_end should clear the list if length=1", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.delete_end();
+  assert(dll.length === 0);
+  assert(dll.head === null);
+  assert(dll.tail === null);
+});
+
+it("delete_end should delete item from the end", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  assert(dll.length === 3);
+  dll.delete_end();
+  assert(dll.length === 2);
+  assert(dll.tail.value === 2);
+  assert(dll.tail.next === null);
+  assert(dll.tail.prev.value === 1);
+  assert(dll.head.value === 1);
+  assert(dll.head.next.value === 2);
+});
+
+it("delete_at should throw an error if index is not a number", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  assert_throw(() => dll.delete_at());
+});
+
+it("delete_at should throw an error if index is out of bounds", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  assert_throw(() => dll.delete_at(2));
+});
+
+it("delete_at should clear the list if lenght=1", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  dll.delete_at(0);
+  assert(dll.head === null);
+  assert(dll.tail === null);
+  assert(dll.length === 0);
+});
+
+it("delete_at should delete at the specific index starting search from the beginning", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  dll.insert_back(4);
+  dll.insert_back(5);
+
+  assert(dll.length === 5);
+  dll.delete_at(1);
+  assert(dll.length === 4);
+
+  assert(dll.head.value === 1);
+  assert(dll.head.prev === null);
+  assert(dll.head.next.value === 3);
+
+  assert(dll.get_at(1).value === 3);
+  assert(dll.get_at(1).prev.value === 1);
+  assert(dll.get_at(1).next.value === 4);
+
+  assert(dll.get_at(2).value === 4);
+  assert(dll.get_at(2).prev.value === 3);
+  assert(dll.get_at(2).next.value === 5);
+
+  assert(dll.get_at(3).value === 5);
+  assert(dll.get_at(3).prev.value === 4);
+  assert(dll.get_at(3).next === null);
+
+  assert(dll.tail.value === 5);
+  assert(dll.tail.prev.value === 4);
+  assert(dll.tail.next === null);
+});
+
+it("delete_at should delete at the specific index starting search from the end", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  dll.insert_back(4);
+  dll.insert_back(5);
+
+  assert(dll.length === 5);
+  dll.delete_at(3);
+  assert(dll.length === 4);
+
+  assert(dll.head.value === 1);
+  assert(dll.head.prev === null);
+  assert(dll.head.next.value === 2);
+
+  assert(dll.get_at(1).value === 2);
+  assert(dll.get_at(1).prev.value === 1);
+  assert(dll.get_at(1).next.value === 3);
+
+  assert(dll.get_at(2).value === 3);
+  assert(dll.get_at(2).prev.value === 2);
+  assert(dll.get_at(2).next.value === 5);
+
+  assert(dll.get_at(3).value === 5);
+  assert(dll.get_at(3).prev.value === 3);
+  assert(dll.get_at(3).next === null);
+
+  assert(dll.tail.value === 5);
+  assert(dll.tail.prev.value === 3);
+  assert(dll.tail.next === null);
+});
+
+it("delete_at should delete the first element", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+
+  assert(dll.length === 3);
+  dll.delete_at(0);
+  assert(dll.length === 2);
+
+  assert(dll.head.value === 2);
+  assert(dll.head.prev === null);
+  assert(dll.head.next.value === 3);
+
+  assert(dll.get_at(1).value === 3);
+  assert(dll.get_at(1).prev.value === 2);
+  assert(dll.get_at(1).next === null);
+
+  assert(dll.tail.value === 3);
+  assert(dll.tail.prev.value === 2);
+  assert(dll.tail.next === null);
+});
+
+it("delete_at should delete the last element", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+
+  assert(dll.length === 3);
+  dll.delete_at(2);
+  assert(dll.length === 2);
+
+  assert(dll.head.value === 1);
+  assert(dll.head.prev === null);
+  assert(dll.head.next.value === 2);
+
+  assert(dll.get_at(1).value === 2);
+  assert(dll.get_at(1).prev.value === 1);
+  assert(dll.get_at(1).next === null);
+
+  assert(dll.tail.value === 2);
+  assert(dll.tail.prev.value === 1);
+  assert(dll.tail.next === null);
+});
+
+it("should return correct length", () => {
+  var dll = new DoublyLinkedList();
+  assert(dll.length === 0);
+  dll.insert(1);
+  assert(dll.length === 1);
+  dll.insert(2);
+  assert(dll.length === 2);
+  dll.delete_start();
+  assert(dll.length === 1);
+  dll.delete_start();
+  assert(dll.length === 0);
+  dll.delete_start();
+  assert(dll.length === 0);
+});
+
+it("should clear", () => {
+  var dll = new DoublyLinkedList();
+  assert(dll.length === 0);
+  dll.insert(1);
+  assert(dll.length === 1);
+  dll.insert(2);
+  assert(dll.length === 2);
+  dll.clear();
+  assert(dll.length === 0);
+  assert(dll.head === null);
+  assert(dll.tail === null);
+});
+
+it("reverse should do nothing if length=1", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  dll.reverse();
+  assert(dll.length === 1);
+  assert(dll.head.value === 1);
+  assert(dll.tail.value === 1);
+});
+
+it("reverse should flip the list values", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  dll.insert(2);
+  dll.insert(3);
+  dll.insert(4);
+
+  var before = [];
+  dll.traverse((node) => before.push(node.value));
+  assert(before.toString() === "4,3,2,1");
+
+  dll.reverse();
+
+  var after = [];
+  dll.traverse((node) => after.push(node.value));
+  assert(after.toString() === "1,2,3,4");
 });
