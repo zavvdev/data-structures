@@ -15,7 +15,20 @@ function assert(condition) {
   }
 }
 
+function assert_throw(fn) {
+  var thrown = false;
+  try {
+    fn();
+  } catch {
+    thrown = true;
+  }
+  if (!thrown) {
+    throw new Error("Expected fn to throw an error");
+  }
+}
+
 module.exports = {
   it,
   assert,
+  assert_throw,
 };

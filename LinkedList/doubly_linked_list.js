@@ -1,4 +1,4 @@
-var { it, assert } = require("../test_utils");
+var { it, assert, assert_throw } = require("../test_utils");
 
 /**
  * Doubly Linked List
@@ -21,17 +21,13 @@ var { it, assert } = require("../test_utils");
  *     - Insert at the beginning
  *     - Insert at the end
  *     - Insert at the specific position
- *     - Insert before node
- *     - Insert after node
  *   4. Deletion:
  *     - Delete from the beginning
  *     - Delete from the end
  *     - Delete at the specific position
- *     - Delete by pointer to the node
  *   5. Utility
  *     - Get length
  *     - Clear
- *     - To array
  *     - Reverse
  */
 
@@ -47,7 +43,7 @@ function DoublyLinkedList() {
   this.length = 0;
 }
 
-DoublyLinkedList.prototype.get_at = function(index) {
+DoublyLinkedList.prototype.get_at = function (index) {
   if (typeof index !== "number") {
     throw new Error(`Expected 'index' to be a number, got ${typeof index}`);
   }
@@ -84,7 +80,7 @@ DoublyLinkedList.prototype.get_at = function(index) {
   return null;
 };
 
-DoublyLinkedList.prototype.find = function(value) {
+DoublyLinkedList.prototype.find = function (value) {
   if (this.head === null) {
     return -1;
   }
@@ -101,7 +97,7 @@ DoublyLinkedList.prototype.find = function(value) {
   return -1;
 };
 
-DoublyLinkedList.prototype.traverse = function(fn) {
+DoublyLinkedList.prototype.traverse = function (fn) {
   if (typeof fn !== "function") {
     throw new Error(`Expected 'fn' to be a function, got ${typeof fn}`);
   }
@@ -118,7 +114,7 @@ DoublyLinkedList.prototype.traverse = function(fn) {
   }
 };
 
-DoublyLinkedList.prototype.traverse_back = function(fn) {
+DoublyLinkedList.prototype.traverse_back = function (fn) {
   if (typeof fn !== "function") {
     throw new Error(`Expected 'fn' to be a function, got ${typeof fn}`);
   }
@@ -135,7 +131,7 @@ DoublyLinkedList.prototype.traverse_back = function(fn) {
   }
 };
 
-DoublyLinkedList.prototype.insert = function(value) {
+DoublyLinkedList.prototype.insert = function (value) {
   var node = new Node(value, null, this.head);
   if (this.head !== null) {
     this.head.prev = node;
@@ -147,7 +143,7 @@ DoublyLinkedList.prototype.insert = function(value) {
   this.length++;
 };
 
-DoublyLinkedList.prototype.insert_back = function(value) {
+DoublyLinkedList.prototype.insert_back = function (value) {
   var tail = this.tail;
   var node = new Node(value, tail, null);
   if (tail !== null) {
@@ -160,11 +156,69 @@ DoublyLinkedList.prototype.insert_back = function(value) {
   this.length++;
 };
 
+DoublyLinkedList.prototype.insert_at = function (value, index) {
+  if (typeof index !== "number") {
+    throw new Error(`Expected 'index' to be a number, got ${typeof index}`);
+  }
+  if (index < 0) {
+    index = this.length + index;
+  }
+  if (this.head === null && index === 0) {
+    this.insert(value);
+    return;
+  }
+  if (index >= this.length) {
+    throw new Error("Out of bounds");
+  }
+
+  var mid = (this.length / 2) | 0;
+  var current_node = null;
+
+  var insert_instead = (current_node) => {
+    const node = new Node(value, current_node.prev, current_node);
+    current_node.prev.next = node;
+    current_node.prev = node;
+    this.length++;
+  };
+
+  if (index <= mid) {
+    current_node = this.head;
+    for (let i = 0; i <= this.length - 1; i++) {
+      if (i === index) {
+        insert_instead(current_node);
+        return;
+      }
+      current_node = current_node.next;
+    }
+  } else {
+    current_node = this.tail;
+    for (let i = this.length - 1; i >= mid; i--) {
+      if (i === index) {
+        insert_instead(current_node);
+        return;
+      }
+      current_node = current_node.prev;
+    }
+  }
+
+  throw new Error("Not found");
+};
+
 // ========================
 //
 // Tests
 //
 // ========================
+
+it("get_at should throw if index is not a number", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  dll.insert(2);
+  dll.insert(3);
+  assert_throw(() => dll.get_at());
+  assert_throw(() => dll.get_at("1"));
+  assert_throw(() => dll.get_at(false));
+});
 
 it("get_at should get node at the middle index", () => {
   var dll = new DoublyLinkedList();
@@ -252,6 +306,12 @@ it("find should return an index of the found node", () => {
   assert(dll.find(2) === 1);
 });
 
+it("traverse should throw if fn is not a function", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  assert_throw(() => dll.traverse());
+});
+
 it("traverse should call a function on each node from the start", () => {
   var dll = new DoublyLinkedList();
   dll.insert(1);
@@ -259,7 +319,13 @@ it("traverse should call a function on each node from the start", () => {
   dll.insert(3);
   var arr = [];
   dll.traverse((node) => arr.push(node.value));
-  assert(arr.toString() === '3,2,1');
+  assert(arr.toString() === "3,2,1");
+});
+
+it("traverse_back should throw if fn is not a function", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert(1);
+  assert_throw(() => dll.traverse_back());
 });
 
 it("traverse_back should call a function on each node from the end", () => {
@@ -269,14 +335,14 @@ it("traverse_back should call a function on each node from the end", () => {
   dll.insert(3);
   var arr = [];
   dll.traverse_back((node) => arr.push(node.value));
-  assert(arr.toString() === '1,2,3');
+  assert(arr.toString() === "1,2,3");
 });
 
 it("insert should insert items from the start", () => {
   var dll = new DoublyLinkedList();
   assert(dll.head === null);
   assert(dll.tail === null);
-  
+
   dll.insert(1);
   assert(dll.head.value === 1);
   assert(dll.head.next === null);
@@ -284,7 +350,7 @@ it("insert should insert items from the start", () => {
   assert(dll.tail.value === 1);
   assert(dll.tail.next === null);
   assert(dll.tail.prev === null);
-  
+
   dll.insert(2);
   assert(dll.head.value === 2);
   assert(dll.head.next.value === 1);
@@ -292,7 +358,7 @@ it("insert should insert items from the start", () => {
   assert(dll.tail.value === 1);
   assert(dll.tail.next === null);
   assert(dll.tail.prev.value === 2);
-  
+
   dll.insert(3);
   assert(dll.head.value === 3);
   assert(dll.head.next.value === 2);
@@ -300,7 +366,7 @@ it("insert should insert items from the start", () => {
   assert(dll.tail.value === 1);
   assert(dll.tail.next === null);
   assert(dll.tail.prev.value === 2);
-  
+
   dll.insert(4);
   assert(dll.head.value === 4);
   assert(dll.head.next.value === 3);
@@ -319,7 +385,7 @@ it("insert_back should insert items from the end", () => {
   var dll = new DoublyLinkedList();
   assert(dll.head === null);
   assert(dll.tail === null);
-  
+
   dll.insert_back(1);
   assert(dll.head.value === 1);
   assert(dll.head.next === null);
@@ -327,7 +393,7 @@ it("insert_back should insert items from the end", () => {
   assert(dll.tail.value === 1);
   assert(dll.tail.next === null);
   assert(dll.tail.prev === null);
-  
+
   dll.insert_back(2);
   assert(dll.head.value === 1);
   assert(dll.head.next.value === 2);
@@ -335,7 +401,7 @@ it("insert_back should insert items from the end", () => {
   assert(dll.tail.value === 2);
   assert(dll.tail.next === null);
   assert(dll.tail.prev.value === 1);
-  
+
   dll.insert_back(3);
   assert(dll.head.value === 1);
   assert(dll.head.next.value === 2);
@@ -343,7 +409,7 @@ it("insert_back should insert items from the end", () => {
   assert(dll.tail.value === 3);
   assert(dll.tail.next === null);
   assert(dll.tail.prev.value === 2);
-  
+
   dll.insert_back(4);
   assert(dll.head.value === 1);
   assert(dll.head.next.value === 2);
@@ -356,4 +422,105 @@ it("insert_back should insert items from the end", () => {
   assert(dll.get_at(1).value === 2);
   assert(dll.get_at(2).value === 3);
   assert(dll.get_at(3).value === 4);
+});
+
+it("insert_at should throw if index is not a number", () => {
+  var dll = new DoublyLinkedList();
+  assert_throw(() => dll.insert_at(1, "123"));
+  assert_throw(() => dll.insert_at(1, false));
+  assert_throw(() => dll.insert_at(1, []));
+  assert_throw(() => dll.insert_at(1));
+});
+
+it("insert_at should throw if index is out of bounds", () => {
+  var dll = new DoublyLinkedList();
+  assert_throw(() => dll.insert_at(1, 100));
+  assert_throw(() => dll.insert_at(1, -100));
+});
+
+it("insert_at should insert at the beginning by index", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_at(1, 0);
+  assert(dll.length === 1);
+  assert(dll.head.value === 1);
+  assert(dll.tail.value === 1);
+});
+
+it("insert_at should insert starting search from the beginning", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  dll.insert_back(4);
+
+  dll.insert_at(0, 1);
+
+  assert(dll.get_at(0).value === 1);
+  assert(dll.get_at(1).value === 0);
+  assert(dll.get_at(2).value === 2);
+  assert(dll.get_at(3).value === 3);
+  assert(dll.get_at(4).value === 4);
+  assert(dll.length === 5);
+
+  assert(dll.get_at(0).prev === null);
+  assert(dll.get_at(0).next.value === 0);
+
+  assert(dll.get_at(1).prev.value === 1);
+  assert(dll.get_at(1).next.value === 2);
+
+  assert(dll.get_at(2).prev.value === 0);
+  assert(dll.get_at(2).next.value === 3);
+
+  assert(dll.get_at(3).prev.value === 2);
+  assert(dll.get_at(3).next.value === 4);
+
+  assert(dll.get_at(4).prev.value === 3);
+  assert(dll.get_at(4).next === null);
+});
+
+it("insert_at should insert starting search from the end", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_back(3);
+  dll.insert_back(4);
+  dll.insert_back(5);
+
+  dll.insert_at(0, 3);
+
+  assert(dll.get_at(0).value === 1);
+  assert(dll.get_at(1).value === 2);
+  assert(dll.get_at(2).value === 3);
+  assert(dll.get_at(3).value === 0);
+  assert(dll.get_at(4).value === 4);
+  assert(dll.get_at(5).value === 5);
+  assert(dll.length === 6);
+
+  assert(dll.get_at(0).prev === null);
+  assert(dll.get_at(0).next.value === 2);
+
+  assert(dll.get_at(1).prev.value === 1);
+  assert(dll.get_at(1).next.value === 3);
+
+  assert(dll.get_at(2).prev.value === 2);
+  assert(dll.get_at(2).next.value === 0);
+
+  assert(dll.get_at(3).prev.value === 3);
+  assert(dll.get_at(3).next.value === 4);
+
+  assert(dll.get_at(4).prev.value === 0);
+  assert(dll.get_at(4).next.value === 5);
+
+  assert(dll.get_at(5).prev.value === 4);
+  assert(dll.get_at(5).next === null);
+});
+
+it("insert_at should support negative index insertion", () => {
+  var dll = new DoublyLinkedList();
+  dll.insert_back(1);
+  dll.insert_back(2);
+  dll.insert_at(0, -1);
+  var list = [];
+  dll.traverse((node) => list.push(node.value));
+  assert(list.toString() === "1,0,2");
 });
